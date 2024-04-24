@@ -12,4 +12,6 @@ const likedSongs = new mongoose.Schema({
         required: true,
         type: String
     }
-})
+});
+
+module.exports = mongoose.model('likedSongs',likedSongs);
