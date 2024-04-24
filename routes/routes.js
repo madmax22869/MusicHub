@@ -5,6 +5,7 @@ const LoginModel = require('../model/loginModel');
 const likedSongs = require('../model/likedSong');
 const jwt = require("jsonwebtoken");
 
+
 //Initialise
 const router = express.Router();
 
@@ -20,6 +21,22 @@ function authenticateToken(req, res, next) {
   }
 
 //API endpoints
+
+
+//add new user
+router.post('/addNewUser', authenticateToken, async (req,res)=>{
+    const data = new LoginModel({
+        login: req.body.login,
+        user: req.body.user,
+        password: req.body.password
+    });
+    try {
+        const storeData = await data.save();
+        res.status(200).json(storeData);
+    } catch (error) {
+        res.status(400).json({message: error.message});
+    }
+});
 
 //Login
 router.post('/login', async (req,res)=>{
@@ -39,26 +56,62 @@ router.post('/login', async (req,res)=>{
     }
 });
 
-
-//Post
-router.post('/post', authenticateToken, async (req,res)=>{
-    const data = new Model({
-        name: req.body.name,
-        atomic: req.body.atomic,
-        chem: req.body.chem,
-        weight: req.body.weight,
-        notes: req.body.notes
-    });
+//Get all users
+router.get('/getAll', authenticateToken, async (req,res)=>{
     try {
-        const storeData = await data.save();
-        res.status(200).json(storeData);
+        const data = await LoginModel.find();
+        res.json(data);
     } catch (error) {
-        res.status(400).json({message: error.message});
+        res.status(500).json({message: error.message});
     }
 });
 
-// add new liked song
+//Get User by Login
+// router.get('/getUserByLogin/:login', authenticateToken, async (req,res)=>{
+//     try {
+//         const data = await LoginModel.findById(req.params.login);
+//         res.json(data);
+//     } catch (error) {
+//         res.status(404).json({message: error.message});
+//     }
+// });
 
+//Get user by name(user)
+router.get('/getByName/:user', authenticateToken, async (req,res)=>{
+    try {
+        const name = req.params.name;
+        const data = await LoginModel.findOne({user});
+        res.json(data);
+    } catch (error) {
+        res.status(404).json({message: error.message});
+    }
+})
+
+//Update User by id
+router.patch('/updateUserBylogin/:login', authenticateToken, async (req,res)=>{
+try {
+    const id = req.params.login;
+    const updateData = req.body;
+    const options = {new: true};
+    const result = await LoginModel.findByIdAndUpdate(id, updateData, options);
+    res.send(result);
+} catch (error) {
+    res.status(400).json({message: error});
+}
+});
+
+//Delete user by id(login)
+router.delete('/deleteUserByLogin/:login', authenticateToken, async (req,res)=>{
+    try {
+        const id = req.params.login;
+        const data = await LoginModel.findByIdAndDelete(login);
+        res.send(`User with ${data.login} has been deleted.`);
+    } catch (error) {
+        res.status(400).json({message: error});
+    }
+    });
+
+// add new liked song
 router.post('/addNewSong', authenticateToken, async (req,res)=>{
     const songData = new likedSongs({
         name: req.body.name,
@@ -72,18 +125,7 @@ router.post('/addNewSong', authenticateToken, async (req,res)=>{
     }
 })
 
-//Get all
-router.get('/getAll', authenticateToken, async (req,res)=>{
-    try {
-        const data = await Model.find();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({message: error.message});
-    }
-});
-
 // Get all songs
-
 router.get('/getAllSongs', authenticateToken, async (req,res)=>{
     try {
         const data = await likedSongs.find();
@@ -93,42 +135,7 @@ router.get('/getAllSongs', authenticateToken, async (req,res)=>{
     }
 })
 
-//Get by id
-router.get('/getById/:id', authenticateToken, async (req,res)=>{
-    try {
-        const data = await Model.findById(req.params.id);
-        res.json(data);
-    } catch (error) {
-        res.status(404).json({message: error.message});
-    }
-});
-
-//Get by name
-router.get('/getByName/:name', authenticateToken, async (req,res)=>{
-    try {
-        const name = req.params.name;
-        const data = await Model.findOne({name});
-        res.json(data);
-    } catch (error) {
-        res.status(404).json({message: error.message});
-    }
-})
-
-//Update by id
-router.patch('/updateById/:id', authenticateToken, async (req,res)=>{
-try {
-    const id = req.params.id;
-    const updateData = req.body;
-    const options = {new: true};
-    const result = await Model.findByIdAndUpdate(id, updateData, options);
-    res.send(result);
-} catch (error) {
-    res.status(400).json({message: error});
-}
-});
-
 //update song
-
 router.patch('/updateSongByName/:name', authenticateToken, async (req,res)=>{
     try {
         const name = req.params.name;
@@ -136,17 +143,6 @@ router.patch('/updateSongByName/:name', authenticateToken, async (req,res)=>{
         const options = {new: true};
         const result = await likedSongs.findByIdAndUpdate(id, updateData, options);
         res.send(result);
-    } catch (error) {
-        res.status(400).json({message: error});
-    }
-    });
-
-//Delete by id
-router.delete('/deleteById/:id', authenticateToken, async (req,res)=>{
-    try {
-        const id = req.params.id;
-        const data = await Model.findByIdAndDelete(id);
-        res.send(`Document with ${data.name} has been deleted.`);
     } catch (error) {
         res.status(400).json({message: error});
     }
