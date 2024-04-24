@@ -9,8 +9,7 @@ const router = express.Router();
 
 //Helpers
 function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = req.headers['authorization'];
     if (token == null) return res.sendStatus(401); // if there isn't any token
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
       if (err) return res.sendStatus(403);
@@ -23,10 +22,10 @@ function authenticateToken(req, res, next) {
 
 //Login
 router.post('/login', async (req,res)=>{
-    const userName = req.body.username;
+    const userName = req.body.login;
     const password = req.body.password;
     try {
-        const data = await LoginModel.findOne({userName});
+        const data = await LoginModel.findOne({login:userName,password:password});
         if(password == data.password){
                 const token = jwt.sign({username:userName},process.env.ACCESS_TOKEN_SECRET);
                 res.status(200).json({token:token});
